@@ -83,5 +83,21 @@ Smart Contract Functions:
     getDislikes(uint postId): Retrieves the number of dislikes for a post.
     getPostContent(uint postId): Retrieves the content of a post.
 
+---
+## Screenshots
+![Screenshot (456)](https://github.com/user-attachments/assets/f7237558-b817-40d1-978d-8d212f89acdf)
+
+
+ FIRST YOU HAVE TO CONNECT AND YOU CAN CHANGE  USER
+![Screenshot (459)](https://github.com/user-attachments/assets/c127ba24-e7a9-49b6-9172-7cbbb3ef92ea)
+
+AFTER ADDING A POST, YOU CAN LIKE ,DISLIKE (ONCE PER USER, THE BUTTONS ARE DISABELED ) OR MODIFY
+![Screenshot (457)](https://github.com/user-attachments/assets/1d19a2d3-dd2a-4ab3-b37f-ec25bf4b1954)
+
+![Screenshot (458)](https://github.com/user-attachments/assets/c4986614-dd9e-4bb6-af4c-504ef43604f3)
+
+
+
+
 
 
