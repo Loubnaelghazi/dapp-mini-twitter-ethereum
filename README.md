@@ -37,4 +37,11 @@ Smart Contract Functions:
     getPostContent(uint postId): Retrieves the content of a post.
 
 
-    
+    Deploy the Smart Contract:
+Deploy the smart contract using Remix IDE or Truffle to an Ethereum testnet (e.g., Rinkeby) or a local test blockchain.
+
+Connect to Ethereum Network:
+In your JavaScript code, use Web3.js to connect to an Ethereum wallet (e.g., MetaMask).
+
+Start the App:
+Open the app in a browser and interact with the blockchain through the UI.
