@@ -40,7 +40,7 @@ The ABI is a JSON object that defines how the contract should interact with the 
 **Note**
 
 For a step-by-step guide on how to deploy your smart contract and set up the application, check out the deployment tutorial here: 
-[Deployment Tutorial](https://github.com/Loubnaelghazi/dapp-mini-twitter-ethereum/upload)
+[Deployment Tutorial](https://github.com/Loubnaelghazi/dapp-mini-twitter-ethereum/blob/main/Deployment%20tutorial.pdf)
 
 
 4. Start the Application
