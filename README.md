@@ -24,9 +24,10 @@ This project uses Web3.js to interact with Ethereum, and you need to install it 
    npm init -y
 2. Install Web3.js using npm:
    
+   ```bash
    npm install web3
    
-4. Change Smart Contract Address and ABI
+3. Change Smart Contract Address and ABI
 
 To interact with your smart contract, you need to update the contract address and ABI (Application Binary Interface) in the frontend code.
 
@@ -36,7 +37,7 @@ Replace the placeholder address with your deployed smart contract address on the
 Contract ABI: Ensure that the ABI of your deployed smart contract is added in the appropriate section of the code. </br>
 The ABI is a JSON object that defines how the contract should interact with the front-end.
 
-3. Start the Application
+4. Start the Application
 
 After you have installed Web3.js and updated the contract details:
 
@@ -44,7 +45,7 @@ After you have installed Web3.js and updated the contract details:
 
     Ensure that your Ethereum wallet (such as MetaMask) is connected to the correct network (either a testnet or mainnet).
 
-4. Usage
+5. Usage
     Create posts
     Like and dislike posts (only once per user)
     View the number of likes and dislikes per post
