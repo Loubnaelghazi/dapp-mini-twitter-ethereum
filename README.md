@@ -52,6 +52,7 @@ After you have installed Web3.js and updated the contract details:
     Ensure that your Ethereum wallet (such as MetaMask) is connected to the correct network (either a testnet or mainnet).
 
 5. Usage
+   </br>
     Create posts
     Like and dislike posts (only once per user)
     View the number of likes and dislikes per post
