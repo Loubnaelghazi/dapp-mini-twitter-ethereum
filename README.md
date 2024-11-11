@@ -37,6 +37,12 @@ Replace the placeholder address with your deployed smart contract address on the
 Contract ABI: Ensure that the ABI of your deployed smart contract is added in the appropriate section of the code. </br>
 The ABI is a JSON object that defines how the contract should interact with the front-end.
 
+**Note**
+
+For a step-by-step guide on how to deploy your smart contract and set up the application, check out the deployment tutorial here: 
+[Deployment Tutorial](https://github.com/Loubnaelghazi/dapp-mini-twitter-ethereum/upload)
+
+
 4. Start the Application
 
 After you have installed Web3.js and updated the contract details:
