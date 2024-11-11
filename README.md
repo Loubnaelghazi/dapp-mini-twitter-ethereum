@@ -1,15 +1,55 @@
 # dapp-mini-twitter-ethereum
 Smart Twitter mini App (Smart Contract Backend)
 
-Overview
+# Mini Twitter Web Interface with Smart Contract Backend
 
-This app is a decentralized social media platform that uses a smart contract backend deployed on the Ethereum blockchain to manage posts, likes, and dislikes. The app allows users to:
+This project is a simple web application that interfaces with a smart contract to simulate a Twitter-like environment where users can post, like, dislike, and modify posts. It uses Web3.js to interact with the Ethereum blockchain, allowing decentralized interactions.
 
+## Prerequisites
+
+Before running the project, make sure you have the following installed:
+
+- [Node.js](https://nodejs.org/) (which includes npm)
+- A code editor (e.g., [Visual Studio Code](https://code.visualstudio.com/))
+
+## Setup Instructions
+
+### 1. **Install Dependencies**
+
+This project uses Web3.js to interact with Ethereum, and you need to install it in your project. Follow these steps to install it:
+
+1. Navigate to your project folder and initialize a Node.js project:
+
+   ```bash
+   npm init -y
+2. Install Web3.js using npm:
+   
+   npm install web3
+   
+4. Change Smart Contract Address and ABI
+
+To interact with your smart contract, you need to update the contract address and ABI (Application Binary Interface) in the frontend code.
+
+Contract Address: In your front-end code, locate where the contract address is defined (usually in a .js or .html file).</br> 
+Replace the placeholder address with your deployed smart contract address on the Ethereum network.
+
+Contract ABI: Ensure that the ABI of your deployed smart contract is added in the appropriate section of the code. </br>
+The ABI is a JSON object that defines how the contract should interact with the front-end.
+
+3. Start the Application
+
+After you have installed Web3.js and updated the contract details:
+
+    Run your web application as per the instructions in your project (e.g., running a local server or opening the HTML file in your browser).
+
+    Ensure that your Ethereum wallet (such as MetaMask) is connected to the correct network (either a testnet or mainnet).
+
+4. Usage
     Create posts
     Like and dislike posts (only once per user)
     View the number of likes and dislikes per post
     Prevent liking or disliking a post multiple times by the same user
-
+   
 Features
 
     Post Creation: Users can create posts that are stored on the blockchain.
