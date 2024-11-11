@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Mini Twitter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e9ecef;
+            color: #495057;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2em;
+            color: #343a40;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            color: #495057;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        #currentAccount {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        #feed {
+            max-width: 600px;
+            width: 100%;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        #feed div {
+            background-color: #ffffff;
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        #feed div:last-child {
+            border-bottom: none;
+        }
+
+        #feed p {
+            margin: 8px 0;
+            color: #495057;
+            line-height: 1.5;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            padding: 10px 18px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #postContent {
+            width: 100%;
+            max-width: 600px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 16px;
+            color: #495057;
+            resize: vertical;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #status {
+            font-weight: bold;
+            color: #28a745;
+            margin-top: 10px;
+        }
+        
+        /* Ajuster les boutons like/dislike et modify */
+        #feed button {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        #feed .button-container {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        /* Style des messages d'alerte */
+        .alert {
+            color: #dc3545;
+            font-size: 0.9em;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mini Twitter</h1>
+
+    <h2>Utilisateur connecté : <span id="currentAccount">Non connecté</span></h2>
+    <button onclick="changeAccount();">Changer de compte</button>
+
+    <h2>Créer un nouveau post</h2>
+    <textarea id="postContent" placeholder="Votre message ici"></textarea>
+    <button onclick="addPost();">Ajouter un post</button>
+
+    <h2>Fils d'actualité</h2>
+    <div id="feed"></div>
+
+    <br /><br />
+    Status: <span id="status">Loading...</span>
+
+    <script type="text/javascript">
+        let contract;
+        let currentAccount;
+        let web3;
+
+        // Initialiser Web3 et vérifier MetaMask
+        async function loadWeb3() {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                currentAccount = (await web3.eth.getAccounts())[0];
+                document.getElementById("currentAccount").innerText = currentAccount;
+            } else {
+                alert("Veuillez installer Metamask !");
+            }
+        }
+
+        // Charger le contrat MiniTwitter
+        async function loadContract() {
+            const abi =[
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "postId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "content",
+				"type": "string"
+			}
+		],
+		"name": "PostCreated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "postId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "PostDisliked",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "postId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "PostLiked",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "postId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "newContent",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "modificationDate",
+				"type": "uint256"
+			}
+		],
+		"name": "PostModified",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			}
+		],
+		"name": "connectWallet",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_content",
+				"type": "string"
+			}
+		],
+		"name": "createPost",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "postId",
+				"type": "uint256"
+			}
+		],
+		"name": "dislikePost",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "postId",
+				"type": "uint256"
+			}
+		],
+		"name": "likePost",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "postId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_newContent",
+				"type": "string"
+			}
+		],
+		"name": "modifyPost",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "currentUser",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "postId",
+				"type": "uint256"
+			}
+		],
+		"name": "getCreationDate",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "postId",
+				"type": "uint256"
+			}
+		],
+		"name": "getDislikes",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "postId",
+				"type": "uint256"
+			}
+		],
+		"name": "getLastModifiedDate",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "postId",
+				"type": "uint256"
+			}
+		],
+		"name": "getLikes",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "postId",
+				"type": "uint256"
+			}
+		],
+		"name": "getPostContent",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "postId",
+				"type": "uint256"
+			}
+		],
+		"name": "getPostInfo",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "content",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "creationDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lastModifiedDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "likes",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "dislikes",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "postId",
+				"type": "uint256"
+			}
+		],
+		"name": "getPostOwner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "postCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "posts",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "content",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "creationDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lastModifiedDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "likes",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "dislikes",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+            const address = "0x381445710b5e73d34aF196c53A3D5cDa58EDBf7A"; // Remplacez avec l'adresse de votre contrat
+            contract = new web3.eth.Contract(abi, address);
+
+            // Écouter les événements
+            contract.events.PostCreated({}, (error, event) => {
+                if (error) console.error(error);
+                loadFeed();
+            });
+
+            loadFeed();
+        }
+		    async function checkUserReaction(postId) {
+        const likes = await contract.methods.getLikes(postId).call();
+        const dislikes = await contract.methods.getDislikes(postId).call();
+        
+        // Vérifier si l'utilisateur a liké ou disliké
+        const userHasLiked = likes > 1 && await contract.methods.getPostOwner(postId).call() === currentAccount;
+        const userHasDisliked = dislikes > 1 && await contract.methods.getPostOwner(postId).call() === currentAccount;
+
+        return { userHasLiked, userHasDisliked };
+    }
+        // Charger le fil d'actualités
+     async function loadFeed() {
+        const postCount = await contract.methods.postCount().call();
+        const feedDiv = document.getElementById("feed");
+        feedDiv.innerHTML = ""; // Clear previous feed
+
+        for (let postId = 1; postId <= postCount; postId++) {
+            const postInfo = await contract.methods.getPostInfo(postId).call();
+            const postDiv = document.createElement("div");
+
+            // Vérifier si l'utilisateur a déjà liké ou disliké ce post
+            const { userHasLiked, userHasDisliked } = await checkUserReaction(postId);
+
+            postDiv.innerHTML = `
+                <p><strong>Post ID:</strong> ${postId}</p>
+                <p><strong>Owner:</strong> ${postInfo[0]}</p>
+                <p><strong>Content:</strong> ${postInfo[1]}</p>
+                <p><strong>Likes:</strong> ${postInfo[4]}</p>
+                <p><strong>Dislikes:</strong> ${postInfo[5]}</p>
+                <button onclick="likePost(${postId})" ${userHasLiked ? 'disabled' : ''}>Like</button>
+                <button onclick="dislikePost(${postId})" ${userHasDisliked ? 'disabled' : ''}>Dislike</button>
+                <button onclick="modifyPost(${postId})">Modify</button>
+            `;
+            feedDiv.appendChild(postDiv);
+        }
+    }
+
+        // Ajouter un post
+        async function addPost() {
+            const content = document.getElementById("postContent").value;
+            if (content && currentAccount) {
+                await contract.methods.createPost(content).send({ from: currentAccount });
+                document.getElementById("postContent").value = ''; // Clear textarea
+				loadFeed();
+            } else {
+                alert("Content is empty or not connected");
+            }
+        }
+
+        // Modifier un post
+        async function modifyPost(postId) {
+            const newContent = prompt("Enter new content:");
+            if (newContent) {
+                await contract.methods.modifyPost(postId, newContent).send({ from: currentAccount });
+				loadFeed();
+            }
+        }
+
+        // Liker un post
+  async function likePost(postId) {
+    try {
+        // Appel à la fonction de like du contrat
+        await contract.methods.likePost(postId).send({ from: currentAccount });
+
+        // Mise à jour de l'interface
+        loadFeed();
+
+    } catch (error) {
+        // Vérifie si l'erreur est liée à une tentative de like multiple
+        if (error.message.includes("You can like only once")) {
+            alert("Vous avez déjà liké ce post.");
+        } else if (error.message.includes("You can't like and dislike at the same time")) {
+            alert("Vous ne pouvez pas liker et disliker un post en même temps.");
+        } else {
+            console.error(error);
+            alert("Une erreur est survenue lors de l'ajout du like.");
+        }
+    }
+}
+async function dislikePost(postId) {
+    try {
+        // Appel à la fonction de dislike du contrat
+        await contract.methods.dislikePost(postId).send({ from: currentAccount });
+
+        // Mise à jour de l'interface
+        loadFeed();
+    } catch (error) {
+        // Vérifie si l'erreur est liée à une tentative de dislike multiple
+        if (error.message.includes("You can dislike only once")) {
+            alert("Vous avez déjà disliké ce post.");
+        } else if (error.message.includes("You can't like and dislike at the same time")) {
+            alert("Vous ne pouvez pas liker et disliker un post en même temps.");
+        } else {
+            console.error(error);
+            alert("Une erreur est survenue lors de l'ajout du dislike.");
+        }
+    }
+}
+
+        // Changer de compte
+        async function changeAccount() {
+            await web3.eth.requestAccounts();
+            currentAccount = (await web3.eth.getAccounts())[0];
+            document.getElementById("currentAccount").innerText = currentAccount;
+			loadFeed();
+        }
+
+        window.addEventListener('load', () => {
+            loadWeb3().then(loadContract);
+        });
+    </script>
+</body>
+</html>
